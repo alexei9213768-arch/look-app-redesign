@@ -2,76 +2,680 @@
 @tailwind components;
 @tailwind utilities;
 
+.video-progress {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.video-progress::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: transparent;
+}
+.video-progress::-moz-range-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: transparent;
+}
+.video-progress::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+.video-progress::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.3333%);
+  }
+}
+@keyframes marquee-right {
+  from {
+    transform: translateX(-33.3333%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.marquee-left {
+  animation: marquee-left 40s linear infinite;
+  width: max-content;
+}
+.marquee-right {
+  animation: marquee-right 45s linear infinite;
+  width: max-content;
+}
+.marquee-left:hover,
+.marquee-right:hover {
+  animation-play-state: paused;
+}
+
+/* === Анимации текстовых/стикер-слоёв в видеоредакторе (превью на холсте) === */
+@keyframes layer-anim-fadein-kf {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.layer-anim-fadein {
+  animation: layer-anim-fadein-kf 0.5s ease-out both;
+}
+@keyframes layer-anim-slideup-kf {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 24px)) rotate(var(--layer-rot, 0deg));
+  }
+  to {
+    opacity: 1;
+  }
+}
+.layer-anim-slideup {
+  animation: layer-anim-slideup-kf 0.5s ease-out both;
+}
+@keyframes layer-anim-pop-kf {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4) rotate(var(--layer-rot, 0deg));
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.08) rotate(var(--layer-rot, 0deg));
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(var(--layer-rot, 0deg));
+  }
+}
+.layer-anim-pop {
+  animation: layer-anim-pop-kf 0.5s ease-out both;
+}
+@keyframes layer-anim-bounce-kf {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-8px);
+  }
+}
+.layer-anim-bounce {
+  animation: layer-anim-bounce-kf 1s ease-in-out infinite;
+}
+@keyframes layer-anim-pulse-kf {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+.layer-anim-pulse {
+  animation: layer-anim-pulse-kf 1.2s ease-in-out infinite;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* === UI Theme switch (Look home) === */
+:root {
+  --look-bg: #14723f; /* насыщенный зелёный фон сайта */
+  --look-sidebar-bg: #0f5c32;
+  --look-fg: #ffffff;
+  --look-accent: #1f6b3a; /* тёмно-зелёный акцент */
+  --look-accent-fg: #ffffff;
+}
+html.theme-light {
+  --look-bg: #d4f3de; /* светло-зелёный фон сайта */
+  --look-sidebar-bg: #c0e9cd;
+  --look-fg: #0d2a18;
+  --look-accent: #1f6b3a;
+  --look-accent-fg: #ffffff;
+}
+html,
+body,
+#root {
+  background: var(--look-bg);
+}
+html.theme-light body {
+  background: var(--look-bg);
+  color: var(--look-fg);
+}
+html.theme-dark body {
+  background: var(--look-bg);
+}
+
+/* === Основные экраны: фон = тема === */
+/* Лента (PostFeed, PostCard), Эфиры (LiveList), Чаты (MessagesScreen) */
+.bg-black {
+  background-color: var(--look-bg) !important;
+}
+/* Исключение: видео и медиа-контейнеры внутри карточек оставляем чёрными (только мобильная раскладка —
+   на ПК фон корневой карточки должен быть цвета темы, см. правила ниже в @media (min-width: 768px)) */
+video.bg-black {
+  background-color: #000 !important;
+}
+@media (max-width: 767px) {
+  .overflow-hidden.bg-black:has(video),
+  .overflow-hidden.bg-black:has(img.object-cover) {
+    background-color: #000 !important;
+  }
+}
+/* Корневой контейнер карточки видео: на мобиле чёрный, на ПК — прозрачный */
+.md\:bg-transparent.bg-black {
+  background-color: #000 !important;
+}
+@media (min-width: 768px) {
+  .md\:bg-transparent.bg-black {
+    background-color: transparent !important;
+  }
+  /* Корень карточки видео на ПК — фон цвета темы (убирает чёрные поля по бокам) */
+  .look-card-root {
+    background-color: var(--look-bg) !important;
+  }
+  /* Скруглённая рамка видео на ПК: фон под маской = цвет темы, чтобы срезанные уголки были зелёными.
+     Маска ставится именно на обёртку (не на <video>), т.к. Chrome/Edge игнорируют
+     border-radius/overflow родителя для аппаратно-ускоренного видео-слоя — маска
+     заставляет браузер композитить видео программно и реально обрезает форму. */
+  .video-round-frame {
+    background-color: var(--look-bg) !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='100%25' height='100%25' rx='16' ry='16' fill='white'/%3E%3C/svg%3E") !important;
+    -webkit-mask-size: 100% 100% !important;
+    -webkit-mask-repeat: no-repeat !important;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='100%25' height='100%25' rx='16' ry='16' fill='white'/%3E%3C/svg%3E") !important;
+    mask-size: 100% 100% !important;
+    mask-repeat: no-repeat !important;
+  }
+  .video-round-frame > video,
+  .video-round-frame > img {
+    border-radius: 16px !important;
+  }
+}
+.bg-zinc-900 {
+  background-color: var(--look-sidebar-bg) !important;
+}
+/* Панели-шторки (Поделиться/Жалоба/Сохранить/Чаты) — заметный фон цвета темы */
+.sheet-theme {
+  background-color: var(--look-bg) !important;
+}
+.bg-\[\#0a0a0a\],
+.bg-\[\#1a1a1a\],
+.bg-\[\#1e1e1e\],
+.bg-\[\#1c1c1e\],
+.bg-\[\#2a2a2a\] {
+  background-color: color-mix(in srgb, var(--look-bg) 80%, #000 20%) !important;
+}
+
+/* В обеих темах — все захардкоженные белые/серые фоны экранов → фон темы */
+.bg-white {
+  background-color: var(--look-bg) !important;
+}
+.bg-gray-50 {
+  background-color: var(--look-bg) !important;
+}
+.bg-gray-100 {
+  background-color: color-mix(in srgb, var(--look-bg) 85%, #000 15%) !important;
+}
+.bg-gray-200 {
+  background-color: color-mix(in srgb, var(--look-bg) 75%, #000 25%) !important;
+}
+/* Текст на этих фонах → цвет темы */
+.bg-white,
+.bg-gray-50,
+.bg-gray-100 {
+  color: var(--look-fg) !important;
+}
+/* Бордеры серые → полупрозрачные */
+.border-gray-50,
+.border-gray-100,
+.border-gray-200 {
+  border-color: color-mix(
+    in srgb,
+    var(--look-fg) 12%,
+    transparent 88%
+  ) !important;
+}
+/* Тексты с захардкоженным чёрным цветом */
+.text-black {
+  color: var(--look-fg) !important;
+}
+.text-gray-400,
+.text-gray-500 {
+  color: color-mix(in srgb, var(--look-fg) 55%, transparent 45%) !important;
+}
+/* Тёмно-серый текст (gray-600/700/800/900) на фоне темы — делаем читаемым */
+.text-gray-600,
+.text-gray-700,
+.text-gray-800,
+.text-gray-900 {
+  color: color-mix(in srgb, var(--look-fg) 85%, transparent 15%) !important;
+}
+/* Инпуты на фоне темы */
+input,
+textarea {
+  color: var(--look-fg) !important;
+}
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--look-fg) 40%, transparent 60%) !important;
+}
+
+/* Дополнительные тёмные фоны Tailwind → фон темы */
+.bg-neutral-900,
+.bg-neutral-800,
+.bg-neutral-950,
+.bg-gray-900,
+.bg-gray-800,
+.bg-gray-950,
+.bg-slate-900,
+.bg-slate-800,
+.bg-slate-950,
+.bg-stone-900,
+.bg-zinc-800,
+.bg-zinc-950,
+.bg-zinc-700,
+.bg-\[\#000\],
+.bg-\[\#000000\],
+.bg-\[\#111\],
+.bg-\[\#111111\],
+.bg-\[\#121212\],
+.bg-\[\#171717\],
+.bg-\[\#1e1e1e\],
+.bg-\[\#1c1c1e\],
+.bg-\[\#181818\],
+.bg-\[\#202020\],
+.bg-\[\#1f1f1f\],
+.bg-\[\#161616\],
+.bg-\[\#0d0d0d\],
+.bg-\[\#0c0c0c\],
+.bg-\[\#0d1220\],
+.bg-\[\#080c14\] {
+  background-color: var(--look-bg) !important;
+}
+
+/* Тёмные градиенты-заливки (фоны экранов, не оверлеи над видео) → фон темы.
+   Оверлеи bg-black/NN и градиенты поверх медиа НЕ трогаем — они нужны для читаемости. */
+.from-zinc-900,
+.from-zinc-800,
+.via-zinc-900,
+.to-zinc-900,
+.to-zinc-950,
+.from-\[\#080c14\],
+.to-\[\#080c14\],
+.from-\[\#0d1220\],
+.to-\[\#0d1220\] {
+  --tw-gradient-from: var(--look-bg) !important;
+  --tw-gradient-to: var(--look-bg) !important;
+  --tw-gradient-stops: var(--look-bg), var(--look-bg) !important;
+}
+
+/* Светлый фон требует тёмного текста */
+html.theme-light body,
+html.theme-light .text-white {
+  color: var(--look-fg) !important;
+}
+html.theme-light .text-white\/90 {
+  color: rgba(13, 42, 24, 0.9) !important;
+}
+html.theme-light .text-white\/80 {
+  color: rgba(13, 42, 24, 0.8) !important;
+}
+html.theme-light .text-white\/70 {
+  color: rgba(13, 42, 24, 0.7) !important;
+}
+html.theme-light .text-white\/60 {
+  color: rgba(13, 42, 24, 0.6) !important;
+}
+html.theme-light .text-white\/50 {
+  color: rgba(13, 42, 24, 0.5) !important;
+}
+html.theme-light .text-white\/40 {
+  color: rgba(13, 42, 24, 0.4) !important;
+}
+html.theme-light .text-white\/30 {
+  color: rgba(13, 42, 24, 0.3) !important;
+}
+
+/* Бордеры на светлом фоне — тёмно-зелёные тонкие */
+html.theme-light .border-white\/5,
+html.theme-light .border-white\/8,
+html.theme-light .border-white\/10,
+html.theme-light .border-white\/15,
+html.theme-light .border-white\/20 {
+  border-color: rgba(13, 42, 24, 0.12) !important;
+}
+
+/* Дополнительные тёмные фоны → светло-зелёный */
+html.theme-light .bg-\[\#000000\],
+html.theme-light .bg-\[\#111111\],
+html.theme-light .bg-\[\#222\],
+html.theme-light .bg-\[\#2a2a2a\],
+html.theme-light .bg-zinc-800,
+html.theme-light .bg-neutral-800,
+html.theme-light .bg-gray-800,
+html.theme-light .bg-slate-900 {
+  background-color: var(--look-bg) !important;
+}
+
+/* Полупрозрачные «белые» поверхности (чипы, кнопки) — на светлом фоне делаем тёмно-зеленоватыми */
+html.theme-light .bg-white\/5 {
+  background-color: rgba(13, 42, 24, 0.05) !important;
+}
+html.theme-light .bg-white\/8 {
+  background-color: rgba(13, 42, 24, 0.08) !important;
+}
+html.theme-light .bg-white\/10 {
+  background-color: rgba(13, 42, 24, 0.1) !important;
+}
+html.theme-light .bg-white\/15 {
+  background-color: rgba(13, 42, 24, 0.13) !important;
+}
+html.theme-light .bg-white\/20 {
+  background-color: rgba(13, 42, 24, 0.16) !important;
+}
+
+/* Заголовки/мета тёмно-серые */
+html.theme-light .text-white\/95 {
+  color: rgba(13, 42, 24, 0.95) !important;
+}
+html.theme-light .text-white\/20 {
+  color: rgba(13, 42, 24, 0.45) !important;
+}
+html.theme-light .text-zinc-400,
+html.theme-light .text-zinc-300,
+html.theme-light .text-neutral-400,
+html.theme-light .text-neutral-300,
+html.theme-light .text-gray-400,
+html.theme-light .text-gray-300,
+html.theme-light .text-slate-400,
+html.theme-light .text-slate-300 {
+  color: rgba(13, 42, 24, 0.7) !important;
+}
+
+/* === Текст ПОВЕРХ медиа (фото/видео/сторис/лайв): ВСЕГДА БЕЛЫЙ + тень ===
+   Применяется независимо от темы. Используется на оверлеях видео-карточек,
+   подписях автора, лайков, длительности видео, никах в сторис и т.п. */
+html .media-overlay-text,
+html .media-overlay-text *,
+html.theme-light .media-overlay-text,
+html.theme-light .media-overlay-text *,
+html.theme-light .media-overlay-text .text-white {
+  color: #ffffff !important;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    0 0 6px rgba(0, 0, 0, 0.4);
+}
+/* Прозрачности белого внутри медиа сохраняем */
+html.theme-light .media-overlay-text .text-white\/90 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+html.theme-light .media-overlay-text .text-white\/80 {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+html.theme-light .media-overlay-text .text-white\/70 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+html.theme-light .media-overlay-text .text-white\/60 {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+html.theme-light .media-overlay-text .text-white\/50 {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+html.theme-light .media-overlay-text .text-white\/40 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+html.theme-light .media-overlay-text .text-white\/30 {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+/* Исключение: активная «таблетка» вкладки (bg-white + text-black) внутри оверлея —
+   текст остаётся цвета темы (не белый), иначе .media-overlay-text * красит его в
+   белый и он сливается со светлым фоном кнопки (фон таблетки тоже цвета темы). */
+html .media-overlay-text .text-black,
+html.theme-light .media-overlay-text .text-black,
+html.theme-dark .media-overlay-text .text-black {
+  color: var(--look-fg) !important;
+  text-shadow: none !important;
+}
+/* Исключение: плюсик кнопки "Создать" в нижнем меню — лежит на белом кружке,
+   поэтому остаётся тёмно-зелёным, а не белым (иначе сливается с белым фоном).
+   Важно: красим И сам svg, И все его внутренние path/line — иначе правило
+   ".media-overlay-text *" выше красит именно внутренние элементы иконки в белый
+   напрямую (в обход цвета родителя), и плюс становится невидимым (белый на белом). */
+html .media-overlay-text .add-tab-plus-icon,
+html .media-overlay-text .add-tab-plus-icon *,
+html.theme-light .media-overlay-text .add-tab-plus-icon,
+html.theme-light .media-overlay-text .add-tab-plus-icon *,
+html.theme-dark .media-overlay-text .add-tab-plus-icon,
+html.theme-dark .media-overlay-text .add-tab-plus-icon * {
+  color: #1f6b3a !important;
+  stroke: #1f6b3a !important;
+}
+
+/* === Иконки на тёмных подложках всегда остаются белыми ===
+   Любые иконки lucide лежащие внутри полупрозрачных тёмных фонов
+   (bg-black/40, bg-black/50, bg-black/60 и т.п.) должны быть белыми
+   независимо от темы сайта. */
+html.theme-light .bg-black\/30 .text-white,
+html.theme-light .bg-black\/40 .text-white,
+html.theme-light .bg-black\/50 .text-white,
+html.theme-light .bg-black\/60 .text-white,
+html.theme-light .bg-black\/70 .text-white,
+html.theme-light .bg-black\/80 .text-white,
+html.theme-light .bg-black\/90 .text-white,
+html.theme-light .bg-black\/30 svg,
+html.theme-light .bg-black\/40 svg,
+html.theme-light .bg-black\/50 svg,
+html.theme-light .bg-black\/60 svg,
+html.theme-light .bg-black\/70 svg,
+html.theme-light .bg-black\/80 svg,
+html.theme-light .bg-black\/90 svg,
+html.theme-light .media-overlay-text svg {
+  color: #ffffff !important;
+}
+
+/* Кнопки действий (лайк/комментарий/поделиться/закладка/ещё) на видео и в Ленте:
+   плоский стиль как в VK Видео — без цветного кружка-подложки, просто белая иконка
+   с мягкой тенью для читаемости поверх медиа. */
+html .action-icon-circle,
+html.theme-light .action-icon-circle,
+html.theme-dark .action-icon-circle {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+html .action-icon-circle::before,
+html.theme-light .action-icon-circle::before,
+html.theme-dark .action-icon-circle::before {
+  content: none !important;
+}
+html .action-icon-circle:hover,
+html.theme-light .action-icon-circle:hover,
+html.theme-dark .action-icon-circle:hover {
+  filter: brightness(1.1);
+  transform: none !important;
+  box-shadow: none !important;
+}
+html .action-icon-circle:active,
+html.theme-light .action-icon-circle:active,
+html.theme-dark .action-icon-circle:active {
+  transform: scale(0.88) !important;
+  box-shadow: none !important;
+}
+/* По умолчанию (карточка на сплошном фоне темы, например открытый пост в Ленте) —
+   иконки и цифры действий красятся по теме сайта, без тени, в любой ширине экрана. */
+html .action-icon-glyph,
+html.theme-dark .action-icon-glyph,
+html.theme-light .action-icon-glyph,
+html .action-icon-circle svg,
+html.theme-dark .action-icon-circle svg,
+html.theme-light .action-icon-circle svg,
+html .action-icon-circle svg *,
+html.theme-dark .action-icon-circle svg *,
+html.theme-light .action-icon-circle svg *,
+html .action-count-text,
+html.theme-dark .action-count-text,
+html.theme-light .action-count-text {
+  color: var(--look-fg) !important;
+  stroke: var(--look-fg) !important;
+  text-shadow: none !important;
+  filter: none !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* На мобиле кнопки действий, лежащие ПРЯМО НА ВИДЕО/ФОТО (класс media-overlay-text,
+   произвольная яркость фона) — иконки и цифры остаются белыми, без тени. */
+@media (max-width: 767px) {
+  html .media-overlay-text .action-icon-glyph,
+  html.theme-dark .media-overlay-text .action-icon-glyph,
+  html.theme-light .media-overlay-text .action-icon-glyph,
+  html .media-overlay-text .action-icon-circle svg,
+  html.theme-dark .media-overlay-text .action-icon-circle svg,
+  html.theme-light .media-overlay-text .action-icon-circle svg,
+  html .media-overlay-text .action-icon-circle svg *,
+  html.theme-dark .media-overlay-text .action-icon-circle svg *,
+  html.theme-light .media-overlay-text .action-icon-circle svg *,
+  html .media-overlay-text .action-count-text,
+  html.theme-dark .media-overlay-text .action-count-text,
+  html.theme-light .media-overlay-text .action-count-text {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    text-shadow: none !important;
+    filter: none !important;
+  }
+}
+
+/* Мобайл: тёмная полупрозрачная подложка под иконкой/цифрой действий —
+   держит белый цвет читаемым и на светлом, и на тёмном видео, без тени. */
+.action-icon-mobile-bg {
+  background: rgba(0, 0, 0, 0.32) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.action-count-mobile-bg {
+  background: rgba(0, 0, 0, 0.28) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+@media (min-width: 768px) {
+  .action-icon-mobile-bg,
+  .action-count-mobile-bg {
+    background: transparent !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Кнопка выбора категории на видео (главная): на мобиле лежит поверх видео —
+   белый текст без тени на тёмной полупрозрачной подложке для читаемости
+   на любом фоне видео; на ПК уже на сплошном белом фоне — просто чёрный текст. */
+.cat-toggle-text {
+  text-shadow: none;
+}
+.cat-toggle-icon {
+  filter: none;
+}
+@media (max-width: 767px) {
+  .cat-toggle-mobile-bg {
+    background: rgba(0, 0, 0, 0.32) !important;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  /* На мобиле кнопка лежит поверх видео произвольной яркости — текст и иконка
+     остаются белыми независимо от темы сайта (иначе на светлой теме текст
+     становится тёмным и сливается с тёмной подложкой). */
+  html.theme-light .cat-toggle-text.cat-toggle-mobile-bg,
+  html.theme-dark .cat-toggle-text.cat-toggle-mobile-bg {
+    color: #ffffff !important;
+  }
+  html.theme-light .cat-toggle-mobile-bg .cat-toggle-icon,
+  html.theme-dark .cat-toggle-mobile-bg .cat-toggle-icon {
+    color: #ffffff !important;
+  }
+}
+
+/* Иконки на красных/розовых/зелёных акцентных кнопках */
+html.theme-light .bg-\[\#fe2c55\] svg,
+html.theme-light .bg-\[\#fe2c55\] .text-white,
+html.theme-light .bg-red-500 svg,
+html.theme-light .bg-green-500 svg,
+html.theme-light .bg-blue-500 svg,
+html.theme-light [style*="--look-accent"] svg {
+  color: #ffffff !important;
+}
+
+/* Подложка-градиент для лучшей читаемости текста на медиа */
+.media-overlay-scrim {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
 @layer base {
   :root {
-    --background: 250 30% 6%;
-    --foreground: 60 20% 96%;
+    --background: 220 20% 6%;
+    --foreground: 210 20% 95%;
 
-    --card: 250 25% 10%;
-    --card-foreground: 60 20% 96%;
+    --card: 220 18% 9%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 250 25% 10%;
-    --popover-foreground: 60 20% 96%;
+    --popover: 220 18% 9%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 75 100% 58%;
-    --primary-foreground: 250 30% 8%;
+    --primary: 195 100% 50%;
+    --primary-foreground: 220 20% 6%;
 
-    --secondary: 250 20% 16%;
-    --secondary-foreground: 60 20% 96%;
+    --secondary: 260 60% 55%;
+    --secondary-foreground: 210 20% 95%;
 
-    --muted: 250 18% 14%;
-    --muted-foreground: 250 10% 68%;
+    --muted: 220 15% 15%;
+    --muted-foreground: 215 15% 55%;
 
-    --accent: 12 100% 64%;
-    --accent-foreground: 250 30% 6%;
+    --accent: 195 100% 50%;
+    --accent-foreground: 220 20% 6%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 250 18% 20%;
-    --input: 250 18% 20%;
-    --ring: 75 100% 58%;
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 195 100% 50%;
 
-    --radius: 1.25rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 250 25% 8%;
-    --sidebar-foreground: 60 20% 96%;
-    --sidebar-primary: 75 100% 58%;
-    --sidebar-primary-foreground: 250 30% 8%;
-    --sidebar-accent: 250 20% 16%;
-    --sidebar-accent-foreground: 60 20% 96%;
-    --sidebar-border: 250 18% 20%;
-    --sidebar-ring: 75 100% 58%;
-  }
-
-  .dark {
-    --background: 250 30% 6%;
-    --foreground: 60 20% 96%;
-    --card: 250 25% 10%;
-    --card-foreground: 60 20% 96%;
-    --popover: 250 25% 10%;
-    --popover-foreground: 60 20% 96%;
-    --primary: 75 100% 58%;
-    --primary-foreground: 250 30% 8%;
-    --secondary: 250 20% 16%;
-    --secondary-foreground: 60 20% 96%;
-    --muted: 250 18% 14%;
-    --muted-foreground: 250 10% 68%;
-    --accent: 12 100% 64%;
-    --accent-foreground: 250 30% 6%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 250 18% 20%;
-    --input: 250 18% 20%;
-    --ring: 75 100% 58%;
-    --sidebar-background: 250 25% 8%;
-    --sidebar-foreground: 60 20% 96%;
-    --sidebar-primary: 75 100% 58%;
-    --sidebar-primary-foreground: 250 30% 8%;
-    --sidebar-accent: 250 20% 16%;
-    --sidebar-accent-foreground: 60 20% 96%;
-    --sidebar-border: 250 18% 20%;
-    --sidebar-ring: 75 100% 58%;
+    --neon-blue: #00d4ff;
+    --neon-purple: #8b5cf6;
+    --neon-pink: #ec4899;
+    --dark-bg: #080c14;
+    --dark-card: #0d1220;
   }
 }
 
@@ -80,51 +684,378 @@
     @apply border-border;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
-
   body {
-    @apply bg-background text-foreground font-body antialiased overflow-x-hidden;
+    @apply bg-background text-foreground;
+    font-family: "Golos Text", sans-serif;
+    background-color: var(--dark-bg);
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
 
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 60;
-    opacity: 0.07;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  h1,
+  h2,
+  h3 {
+    font-family: "Oswald", sans-serif;
   }
 }
 
 @layer utilities {
-  .text-outline {
-    -webkit-text-stroke: 1.5px hsl(var(--foreground));
-    color: transparent;
+  .h-screen-safe {
+    height: 100vh;
+    height: 100dvh;
   }
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Oswald", sans-serif;
+  }
+
+  .font-body {
+    font-family: "Golos Text", sans-serif;
+  }
+
+  .neon-text {
+    color: var(--neon-blue);
+    text-shadow:
+      0 0 20px rgba(0, 212, 255, 0.6),
+      0 0 40px rgba(0, 212, 255, 0.3);
+  }
+
+  .slogan-shimmer {
+    background: linear-gradient(
+      90deg,
+      #22e0a1,
+      #22d3ee,
+      #4ade80,
+      #22d3ee,
+      #22e0a1
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: slogan-shimmer 4s linear infinite;
+    filter: drop-shadow(0 2px 12px rgba(34, 211, 238, 0.35));
+  }
+
+  @keyframes slogan-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 300% 50%;
+    }
+  }
+
+  .logo-glow-pulse {
+    animation: logo-glow-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes logo-glow-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.15);
+    }
+  }
+
+  .auth-cta-btn {
+    position: relative;
+    background: linear-gradient(
+      90deg,
+      #22e0a1,
+      #22d3ee,
+      #4ade80,
+      #22d3ee,
+      #22e0a1
+    );
+    background-size: 300% 100%;
+    animation:
+      slogan-shimmer 5s linear infinite,
+      auth-cta-pulse 2.5s ease-in-out infinite;
+    box-shadow:
+      0 8px 24px rgba(34, 211, 238, 0.35),
+      0 0 32px rgba(34, 224, 161, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: transform 0.15s ease;
+  }
+
+  .auth-cta-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  .auth-cta-btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .auth-cta-btn:disabled {
+    animation: none;
+    background: linear-gradient(90deg, #22e0a1, #22d3ee);
+    box-shadow: none;
+  }
+
+  @keyframes auth-cta-pulse {
+    0%,
+    100% {
+      box-shadow:
+        0 8px 24px rgba(34, 211, 238, 0.35),
+        0 0 32px rgba(34, 224, 161, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+    50% {
+      box-shadow:
+        0 10px 32px rgba(34, 211, 238, 0.55),
+        0 0 48px rgba(34, 224, 161, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+  }
+
+  .neon-border {
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    box-shadow:
+      0 0 15px rgba(0, 212, 255, 0.1),
+      inset 0 0 15px rgba(0, 212, 255, 0.05);
+  }
+
+  .neon-glow {
+    box-shadow:
+      0 0 30px rgba(0, 212, 255, 0.4),
+      0 0 60px rgba(0, 212, 255, 0.2);
+  }
+
+  .purple-glow {
+    box-shadow:
+      0 0 30px rgba(139, 92, 246, 0.4),
+      0 0 60px rgba(139, 92, 246, 0.2);
+  }
+
   .grid-bg {
     background-image:
-      linear-gradient(hsl(var(--border) / 0.45) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--border) / 0.45) 1px, transparent 1px);
-    background-size: 56px 56px;
+      linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
   }
-  .hover-scale {
-    @apply transition-transform duration-200 hover:scale-105;
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  .story-link {
-    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+
+  .card-hover {
+    transition: all 0.3s ease;
   }
-  .reveal {
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 212, 255, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-12px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-6px) rotate(-1deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(0, 212, 255, 0.3),
+      0 0 40px rgba(0, 212, 255, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(0, 212, 255, 0.6),
+      0 0 80px rgba(0, 212, 255, 0.3);
+  }
+}
+
+@keyframes slide-up {
+  from {
     opacity: 0;
-    transform: translateY(32px);
-    transition:
-      opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
-      transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+    transform: translateY(30px);
   }
-  .reveal.is-visible {
+  to {
     opacity: 1;
-    transform: none;
+    transform: translateY(0);
   }
+}
+
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes particle-float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px) scale(1.1);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-10px) translateX(-10px) scale(0.9);
+    opacity: 0.4;
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out forwards;
+}
+
+.animate-rotate-slow {
+  animation: rotate-slow 20s linear infinite;
+}
+
+.animate-particle {
+  animation: particle-float 4s ease-in-out infinite;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+.delay-200 {
+  animation-delay: 0.2s;
+}
+.delay-300 {
+  animation-delay: 0.3s;
+}
+.delay-400 {
+  animation-delay: 0.4s;
+}
+.delay-500 {
+  animation-delay: 0.5s;
+}
+.delay-600 {
+  animation-delay: 0.6s;
+}
+.delay-700 {
+  animation-delay: 0.7s;
+}
+.delay-800 {
+  animation-delay: 0.8s;
+}
+
+/* Десктоп: кнопки действий вынесены за видео на фон темы — цвет по теме, не белый */
+@media (min-width: 768px) {
+  html .media-overlay-text .desktop-actions-col,
+  html .media-overlay-text .desktop-actions-col *,
+  html.theme-light .media-overlay-text .desktop-actions-col,
+  html.theme-light .media-overlay-text .desktop-actions-col *,
+  html.theme-light .media-overlay-text .desktop-actions-col .text-white {
+    color: var(--look-fg) !important;
+    text-shadow: none !important;
+  }
+  html .media-overlay-text .desktop-actions-col .action-icon-glyph,
+  html .media-overlay-text .desktop-actions-col .action-icon-circle svg,
+  html .media-overlay-text .desktop-actions-col .action-icon-circle svg * {
+    stroke: var(--look-fg) !important;
+  }
+  html .media-overlay-text .desktop-actions-col .text-\[\#fe2c55\] {
+    color: #fe2c55 !important;
+  }
+}
+
+/* === Окно поста на ПК: цвета следуют теме (светлая / тёмная) === */
+.nv-panel {
+  background-color: var(--look-bg) !important;
+  color: var(--look-fg) !important;
+}
+.nv-muted {
+  color: color-mix(in srgb, var(--look-fg) 62%, transparent) !important;
+}
+.nv-border {
+  border-color: color-mix(in srgb, var(--look-fg) 16%, transparent) !important;
+}
+.nv-soft {
+  background-color: color-mix(in srgb, var(--look-fg) 12%, transparent) !important;
+  color: var(--look-fg) !important;
+}
+.nv-hover:hover {
+  background-color: color-mix(in srgb, var(--look-fg) 12%, transparent) !important;
+}
+.nv-media {
+  background-color: #000 !important;
+}
+.nv-red {
+  background-color: #fe2c55 !important;
+  color: #fff !important;
+}
+.nv-red:hover {
+  background-color: #e8294d !important;
+}
+.nv-closebtn {
+  background-color: rgba(0, 0, 0, 0.55) !important;
+  color: #fff !important;
+}
+.nv-tag {
+  color: #61d4f0 !important;
+}
+html.theme-light .nv-tag {
+  color: #0b5cad !important;
+}
+.nv-pop {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  border: 1px solid color-mix(in srgb, var(--look-fg) 18%, transparent);
+}
+.nv-icon,
+.nv-icon * {
+  color: var(--look-fg) !important;
+  stroke: var(--look-fg) !important;
+}
+.nv-icon-active,
+.nv-icon-active * {
+  color: #fe2c55 !important;
+  stroke: #fe2c55 !important;
 }

@@ -1,136 +1,143 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
-import { useReveal } from "@/hooks/use-reveal";
 
 const features = [
   {
-    icon: "MessageCircle",
-    title: "Мгновенные сообщения",
-    text: "Доставка за доли секунды, статусы прочтения и ответы на конкретное сообщение свайпом.",
-    preview: [
-      { me: false, t: "Ты где?" },
-      { me: true, t: "Уже подхожу 🏃" },
-      { me: false, t: "Жду у входа" },
-    ],
+    icon: "Zap",
+    title: "Умная лента",
+    desc: "Алгоритм изучает твои предпочтения и показывает только то, что тебе интересно — без лишнего шума.",
+    color: "#00d4ff",
+    gradient: "from-[#00d4ff]/20 to-transparent",
   },
   {
-    icon: "Mic",
-    title: "Голосовые за секунду",
-    text: "Зажми и говори. Ускорение воспроизведения, расшифровка в текст и пауза в любой момент.",
-    preview: [
-      { me: false, t: "🎙 0:12 голосовое" },
-      { me: true, t: "Расшифровка: «Буду через 10 минут»" },
-    ],
+    icon: "Video",
+    title: "Съёмка в приложении",
+    desc: "Записывай видео прямо в Лоок с фильтрами, музыкой и эффектами в один клик.",
+    color: "#8b5cf6",
+    gradient: "from-[#8b5cf6]/20 to-transparent",
   },
   {
-    icon: "Users",
-    title: "Группы и каналы",
-    text: "Чаты до 1000 человек, упоминания, опросы и закреплённые сообщения для важного.",
-    preview: [
-      { me: false, t: "Аня: Голосуем за пятницу?" },
-      { me: false, t: "📊 Да — 8 · Нет — 2" },
-      { me: true, t: "Я за!" },
-    ],
+    icon: "Share2",
+    title: "Мгновенный шеринг",
+    desc: "Делись видео с друзьями через любые мессенджеры или публикуй в своём профиле за секунды.",
+    color: "#ec4899",
+    gradient: "from-[#ec4899]/20 to-transparent",
+  },
+  {
+    icon: "TrendingUp",
+    title: "Тренды в реальном времени",
+    desc: "Всегда в курсе того, что сейчас популярно. Живой раздел трендов обновляется каждый час.",
+    color: "#10b981",
+    gradient: "from-[#10b981]/20 to-transparent",
+  },
+  {
+    icon: "Music",
+    title: "Библиотека музыки",
+    desc: "Тысячи треков для твоих видео. Добавляй саундтрек одним нажатием и делай контент ярче.",
+    color: "#f59e0b",
+    gradient: "from-[#f59e0b]/20 to-transparent",
   },
   {
     icon: "ShieldCheck",
-    title: "Сквозное шифрование",
-    text: "Сообщения и звонки защищены. Прочитать переписку можете только вы и собеседник.",
-    preview: [
-      { me: false, t: "🔒 Чат защищён" },
-      { me: true, t: "Отлично, пересылаю документы" },
-    ],
+    title: "Приватность и безопасность",
+    desc: "Управляй тем, кто видит твой контент. Гибкие настройки приватности под каждый пост.",
+    color: "#00d4ff",
+    gradient: "from-[#00d4ff]/20 to-transparent",
   },
 ];
 
-const Features = () => {
-  const [active, setActive] = useState(0);
-  const ref = useReveal<HTMLElement>();
-  const f = features[active];
+const FeatureCard = ({
+  feature,
+  index,
+}: {
+  feature: (typeof features)[0];
+  index: number;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section id="features" ref={ref} className="relative py-28 md:py-36">
-      <div className="container max-w-6xl">
-        <div className="reveal flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
-          <h2 className="font-display font-black text-5xl md:text-7xl leading-[0.95] tracking-tight">
-            Функции,
+    <div
+      ref={ref}
+      className="group relative rounded-3xl border border-white/8 bg-[#0d1220]/80 backdrop-blur-sm p-7 card-hover overflow-hidden"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(30px)",
+        transition: `all 0.6s ease ${index * 0.1}s`,
+      }}
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+      <div
+        className="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
+        style={{ background: `${feature.color}15`, border: `1px solid ${feature.color}30` }}
+      >
+        <Icon name={feature.icon as "Zap"} size={26} style={{ color: feature.color }} />
+      </div>
+      <h3 className="relative font-display text-xl text-white mb-3 tracking-wide">{feature.title}</h3>
+      <p className="relative font-body text-sm text-white/50 leading-relaxed">{feature.desc}</p>
+      <div
+        className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-500"
+        style={{ background: `linear-gradient(90deg, ${feature.color}, transparent)` }}
+      />
+    </div>
+  );
+};
+
+const Features = () => {
+  const titleRef = useRef<HTMLDivElement>(null);
+  const [titleVisible, setTitleVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setTitleVisible(true); },
+      { threshold: 0.2 }
+    );
+    if (titleRef.current) observer.observe(titleRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section id="features" className="relative py-28 overflow-hidden">
+      <div className="absolute inset-0 grid-bg opacity-20" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-[#8b5cf6]/5 blur-[120px]" />
+
+      <div className="relative max-w-6xl mx-auto px-6">
+        <div
+          ref={titleRef}
+          className="text-center mb-20"
+          style={{
+            opacity: titleVisible ? 1 : 0,
+            transform: titleVisible ? "translateY(0)" : "translateY(20px)",
+            transition: "all 0.7s ease",
+          }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/5 text-[#8b5cf6] text-sm font-body mb-6">
+            <Icon name="Sparkles" size={14} />
+            Возможности
+          </div>
+          <h2 className="font-display text-4xl md:text-6xl font-bold text-white mb-4">
+            Всё что нужно
             <br />
-            <span className="text-outline">а не</span> <span className="text-accent">шум</span>
+            <span className="gradient-text">для крутого контента</span>
           </h2>
-          <p className="max-w-sm text-muted-foreground text-lg">
-            Мы убрали всё лишнее и оставили то, чем вы пользуетесь каждый день. Нажмите на функцию —
-            посмотрите, как она выглядит.
+          <p className="font-body text-white/50 text-lg max-w-xl mx-auto">
+            Лоок объединяет лучшие инструменты для создания и просмотра видео
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_360px] gap-10 items-start">
-          <div className="grid sm:grid-cols-2 gap-4">
-            {features.map((item, i) => (
-              <button
-                key={item.title}
-                onClick={() => setActive(i)}
-                className={`reveal text-left rounded-3xl border p-6 transition-all duration-300 ${
-                  i === active
-                    ? "bg-primary text-primary-foreground border-primary -rotate-1 shadow-2xl"
-                    : "bg-card text-card-foreground border-border hover:-translate-y-1 hover:border-primary/50"
-                }`}
-                style={{ transitionDelay: `${i * 0.08}s` }}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`grid place-items-center w-12 h-12 rounded-2xl ${
-                      i === active ? "bg-primary-foreground text-primary" : "bg-secondary text-primary"
-                    }`}
-                  >
-                    <Icon name={item.icon} size={24} />
-                  </span>
-                  <span className="font-display text-sm font-bold opacity-60">0{i + 1}</span>
-                </div>
-                <h3 className="mt-6 font-display text-xl font-bold">{item.title}</h3>
-                <p className={`mt-2 text-sm leading-relaxed ${i === active ? "opacity-80" : "text-muted-foreground"}`}>
-                  {item.text}
-                </p>
-              </button>
-            ))}
-          </div>
-
-          <div className="reveal lg:sticky lg:top-28 mx-auto w-full max-w-[340px]">
-            <div className="relative rounded-[2.75rem] border-[10px] border-secondary bg-background shadow-2xl overflow-hidden">
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 rounded-full bg-secondary z-10" />
-              <div className="pt-10 px-4 pb-4 flex items-center gap-3 border-b border-border">
-                <span className="grid place-items-center w-10 h-10 rounded-full bg-accent text-accent-foreground font-display font-bold">
-                  М
-                </span>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm">Маша</div>
-                  <div className="text-xs text-primary">в сети</div>
-                </div>
-                <Icon name="Phone" size={18} className="text-muted-foreground" />
-                <Icon name="Video" size={18} className="text-muted-foreground" />
-              </div>
-              <div key={active} className="h-80 p-4 flex flex-col justify-end gap-2">
-                {f.preview.map((m, i) => (
-                  <div
-                    key={i}
-                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm animate-fade-in ${
-                      m.me
-                        ? "self-end bg-primary text-primary-foreground rounded-br-md"
-                        : "self-start bg-secondary text-secondary-foreground rounded-bl-md"
-                    }`}
-                    style={{ animationDelay: `${i * 0.25}s` }}
-                  >
-                    {m.t}
-                  </div>
-                ))}
-              </div>
-              <div className="p-3 flex items-center gap-2 border-t border-border">
-                <div className="flex-1 rounded-full bg-secondary px-4 py-2 text-sm text-muted-foreground">Сообщение…</div>
-                <span className="grid place-items-center w-9 h-9 rounded-full bg-primary text-primary-foreground">
-                  <Icon name="Send" size={16} />
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {features.map((feature, i) => (
+            <FeatureCard key={feature.title} feature={feature} index={i} />
+          ))}
         </div>
       </div>
     </section>

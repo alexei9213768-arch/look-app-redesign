@@ -1,0 +1,26 @@
+{
+  "tests": [
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Init returns upload_id and key",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "init", "ext": "mp4", "content_type": "video/mp4"},
+      "expectedStatus": 200,
+      "expectedBody": {"upload_id": "string", "key": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unknown action returns 400",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "blabla"},
+      "expectedStatus": 400
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "tests": [
+    {
+      "name": "Unauthorized stats request returns 401",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "stats"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Unknown action without token returns 401",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "nonsense"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Forgot password returns ok without token",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "forgot_password", "email": "support@look.com.ru"},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "User ban without token returns 401",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "user_ban", "user_id": "x", "banned": true},
+      "expectedStatus": 401
+    }
+  ]
+}

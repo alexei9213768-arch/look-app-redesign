@@ -1,0 +1,164 @@
+const isMobile = () => typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isIOS = () => typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isAndroid = () => typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+
+export const HQ_AUDIO_CONSTRAINTS: MediaTrackConstraints = {
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
+  channelCount: 1,
+  // На Android WebView снижаем sampleRate — помогает аппаратному AEC
+  sampleRate: isAndroid() ? 16000 : 48000,
+  sampleSize: 16,
+  ...(isMobile() ? { latency: 0.01 } : {}),
+  // Vendor-prefixed hints (Chrome/Android WebView)
+  ...({
+    googEchoCancellation: true,
+    googEchoCancellation2: true,
+    googAutoGainControl: true,
+    googAutoGainControl2: true,
+    googNoiseSuppression: true,
+    googNoiseSuppression2: true,
+    googHighpassFilter: true,
+    googTypingNoiseDetection: true,
+    googAudioMirroring: false,
+    // Явно форсируем hardware AEC на Android
+    googEchoCancellationMobile: true,
+  } as MediaTrackConstraints),
+};
+
+export const applyAudioTrackTuning = (stream: MediaStream | null | undefined) => {
+  if (!stream) return;
+  stream.getAudioTracks().forEach(track => {
+    try {
+      track.applyConstraints(HQ_AUDIO_CONSTRAINTS).catch(() => {});
+    } catch {
+      /* noop */
+    }
+  });
+};
+
+let audioCtxUnlocked = false;
+export const unlockMobileAudio = async () => {
+  if (audioCtxUnlocked) return;
+  try {
+    const Ctx = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+    audioCtxUnlocked = true;
+  } catch {
+    /* noop */
+  }
+};
+
+export const tuneRemoteAudioElement = (el: HTMLAudioElement | HTMLVideoElement | null | undefined) => {
+  if (!el) return;
+  try {
+    el.volume = 1;
+    el.muted = false;
+    (el as HTMLAudioElement).autoplay = true;
+    el.setAttribute('playsinline', 'true');
+    el.setAttribute('webkit-playsinline', 'true');
+    if (isIOS() && 'sinkId' in el) {
+      // Force speaker output on iOS PWA when supported
+      const anyEl = el as HTMLAudioElement & { setSinkId?: (id: string) => Promise<void> };
+      anyEl.setSinkId?.('').catch(() => {});
+    }
+  } catch {
+    /* noop */
+  }
+};
+
+export const tuneAudioSenders = async (pc: RTCPeerConnection | null | undefined) => {
+  if (!pc) return;
+  try {
+    const senders = pc.getSenders().filter(s => s.track && s.track.kind === 'audio');
+    for (const sender of senders) {
+      const params = sender.getParameters();
+      if (!params.encodings || params.encodings.length === 0) {
+        params.encodings = [{}];
+      }
+      params.encodings.forEach(enc => {
+        // Низкий битрейт для устойчивости на плохом интернете
+        enc.maxBitrate = isMobile() ? 16000 : 24000;
+        enc.priority = 'high';
+        enc.networkPriority = 'high';
+        enc.adaptivePtime = true;
+      });
+      await sender.setParameters(params).catch(() => {});
+    }
+  } catch {
+    /* noop */
+  }
+};
+
+// Адаптация видео под качество сети: low → сильно режем битрейт и разрешение,
+// чтобы связь не рвалась на плохом интернете; high → возвращаем нормальное.
+export const tuneVideoSenders = async (
+  pc: RTCPeerConnection | null | undefined,
+  level: 'low' | 'mid' | 'high',
+) => {
+  if (!pc) return;
+  try {
+    const senders = pc.getSenders().filter(s => s.track && s.track.kind === 'video');
+    const cfg = {
+      low: { maxBitrate: 120000, scaleDownBy: 3, maxFramerate: 12 },
+      mid: { maxBitrate: 400000, scaleDownBy: 1.5, maxFramerate: 20 },
+      high: { maxBitrate: 900000, scaleDownBy: 1, maxFramerate: 30 },
+    }[level];
+    for (const sender of senders) {
+      const params = sender.getParameters();
+      if (!params.encodings || params.encodings.length === 0) {
+        params.encodings = [{}];
+      }
+      params.encodings.forEach(enc => {
+        enc.maxBitrate = cfg.maxBitrate;
+        enc.scaleResolutionDownBy = cfg.scaleDownBy;
+        enc.maxFramerate = cfg.maxFramerate;
+        enc.networkPriority = 'high';
+      });
+      await sender.setParameters(params).catch(() => {});
+    }
+  } catch {
+    /* noop */
+  }
+};
+
+export const boostOpusInSdp = (sdp: string): string => {
+  if (!sdp) return sdp;
+  try {
+    const mobile = isMobile();
+    const android = isAndroid();
+    // Android WebView — минимальный битрейт для надёжного AEC
+    const bitrate = android ? '12000' : mobile ? '16000' : '24000';
+    const playbackRate = android ? '8000' : '16000';
+    return sdp.replace(/a=fmtp:(\d+) ([^\r\n]*opus[^\r\n]*)/gi, (_match, pt, rest) => {
+      let updated = rest;
+      const set = (key: string, value: string) => {
+        if (new RegExp(`${key}=`).test(updated)) {
+          updated = updated.replace(new RegExp(`${key}=[^;]*`), `${key}=${value}`);
+        } else {
+          updated += `;${key}=${value}`;
+        }
+      };
+      set('stereo', '0');
+      set('sprop-stereo', '0');
+      set('maxaveragebitrate', bitrate);
+      set('maxplaybackrate', playbackRate);
+      set('useinbandfec', '1');
+      set('usedtx', '1');
+      set('cbr', '0');
+      set('minptime', android ? '40' : '60');
+      set('ptime', android ? '40' : '60');
+      return `a=fmtp:${pt} ${updated}`;
+    });
+  } catch {
+    return sdp;
+  }
+};

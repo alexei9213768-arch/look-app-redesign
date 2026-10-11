@@ -12,3 +12,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Host: https://look.com.ru
+Sitemap: https://look.com.ru/sitemap.xml

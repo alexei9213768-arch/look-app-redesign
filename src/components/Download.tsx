@@ -1,112 +1,98 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
-import { Input } from "@/components/ui/input";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useToast } from "@/hooks/use-toast";
-import { useReveal } from "@/hooks/use-reveal";
-
-const stores = [
-  { icon: "Apple", top: "Загрузите в", name: "App Store" },
-  { icon: "Play", top: "Доступно в", name: "Google Play" },
-  { icon: "Store", top: "Откройте в", name: "RuStore" },
-];
-
-const faq = [
-  { q: "ShortApp бесплатный?", a: "Да. Сообщения, голосовые и звонки — бесплатно и без рекламы." },
-  { q: "Звонки работают через мобильный интернет?", a: "Да, ShortApp подстраивает качество под скорость сети, поэтому звонки держатся даже на 3G." },
-  { q: "Можно ли пользоваться на компьютере?", a: "Да, есть веб-версия и приложения для Windows и macOS — переписка синхронизируется автоматически." },
-  { q: "Насколько защищены мои данные?", a: "Все чаты и звонки защищены сквозным шифрованием. Мы не храним содержимое переписки на серверах." },
-];
 
 const Download = () => {
-  const ref = useReveal<HTMLElement>();
-  const { toast } = useToast();
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length < 10 || digits.length > 12) {
-      setError("Введите корректный номер телефона");
-      return;
-    }
-    setError("");
-    setPhone("");
-    toast({ title: "Ссылка отправлена", description: "Проверьте SMS — в нём ссылка на скачивание ShortApp." });
-  };
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold: 0.2 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section id="download" ref={ref} className="relative py-28 md:py-36">
-      <div className="container max-w-6xl">
-        <div className="reveal relative rounded-[3rem] bg-primary text-primary-foreground p-8 md:p-16 overflow-hidden">
-          <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full border-[40px] border-primary-foreground/10" />
-          <div className="absolute right-24 bottom-10 w-24 h-24 rounded-3xl bg-accent rotate-12 animate-float hidden md:block" />
+    <section id="download" className="relative py-28 overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00d4ff]/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00d4ff]/3 to-transparent" />
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#00d4ff]/5 blur-[120px]" />
 
-          <div className="relative max-w-2xl">
-            <h2 className="font-display font-black text-5xl md:text-7xl leading-[0.92] tracking-tight">
-              Скачай.
-              <br />
-              Напиши.
-              <br />
-              Позвони.
-            </h2>
-            <p className="mt-6 text-lg opacity-80 max-w-md">
-              Установка занимает меньше минуты. Регистрация — по номеру телефона, без паролей.
-            </p>
+      <div
+        ref={ref}
+        className="relative max-w-4xl mx-auto px-6 text-center"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(30px)",
+          transition: "all 0.8s ease",
+        }}
+      >
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/5 text-[#00d4ff] text-sm font-body mb-8">
+          <Icon name="Download" size={14} />
+          Скачать приложение
+        </div>
 
-            <div className="mt-10 flex flex-wrap gap-3">
-              {stores.map((s) => (
-                <a
-                  key={s.name}
-                  href="#download"
-                  className="inline-flex items-center gap-3 rounded-2xl bg-primary-foreground text-primary px-5 py-3 hover-scale"
-                >
-                  <Icon name={s.icon} size={26} fallback="Smartphone" />
-                  <span className="text-left leading-tight">
-                    <span className="block text-[11px] opacity-70">{s.top}</span>
-                    <span className="block font-semibold">{s.name}</span>
-                  </span>
-                </a>
-              ))}
+        <h2 className="font-display text-4xl md:text-6xl font-bold mb-6">
+          <span className="text-white">Готов начать?</span>
+          <br />
+          <span className="gradient-text">Это бесплатно</span>
+        </h2>
+
+        <p className="font-body text-white/50 text-lg max-w-lg mx-auto mb-14 leading-relaxed">
+          Скачай Лоок прямо сейчас и присоединяйся к тысячам пользователей, которые уже оценили приложение
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-16">
+          <a
+            href="https://www.rustore.ru/catalog/app/ru.aleksey.shortapp"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-4 px-7 py-4 rounded-2xl bg-gradient-to-r from-[#00d4ff] to-[#0ea5e9] text-[#080c14] font-bold text-lg w-full sm:w-auto justify-center hover:shadow-[0_0_40px_rgba(0,212,255,0.5)] transition-all duration-300 hover:scale-105"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#080c14]/20 flex items-center justify-center">
+              <Icon name="ShoppingBag" size={20} className="text-[#080c14]" />
             </div>
+            <div className="text-left">
+              <div className="text-xs opacity-70 font-normal">Скачать в</div>
+              <div className="font-display text-xl tracking-wide">RuStore</div>
+            </div>
+            <Icon name="ArrowRight" size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+          </a>
 
-            <form onSubmit={submit} className="mt-10 max-w-md">
-              <label className="text-sm font-semibold">Или получите ссылку в SMS</label>
-              <div className="mt-2 flex gap-2 rounded-full bg-primary-foreground p-1.5">
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+7 900 000-00-00"
-                  inputMode="tel"
-                  className="border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full"
-                />
-                <button
-                  type="submit"
-                  className="shrink-0 rounded-full bg-primary text-primary-foreground px-5 font-semibold hover:opacity-90"
-                >
-                  Отправить
-                </button>
-              </div>
-              {error && <p className="mt-2 text-sm font-medium text-destructive">{error}</p>}
-            </form>
+          <div className="flex items-center gap-4 px-7 py-4 rounded-2xl border border-white/10 text-white/40 text-lg w-full sm:w-auto justify-center cursor-not-allowed">
+            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+              <Icon name="Smartphone" size={20} className="text-white/40" />
+            </div>
+            <div className="text-left">
+              <div className="text-xs font-normal">Скоро в</div>
+              <div className="font-display text-xl tracking-wide">Google Play</div>
+            </div>
+            <div className="ml-2 text-xs px-2 py-0.5 rounded-full border border-white/10 text-white/30">Скоро</div>
           </div>
         </div>
 
-        <div className="mt-24 grid md:grid-cols-[1fr_1.4fr] gap-10">
-          <h3 className="reveal font-display font-black text-4xl md:text-5xl leading-tight">
-            Частые <span className="text-outline">вопросы</span>
-          </h3>
-          <Accordion type="single" collapsible className="reveal">
-            {faq.map((f, i) => (
-              <AccordionItem key={i} value={`i${i}`} className="border-border">
-                <AccordionTrigger className="text-left font-display text-lg hover:no-underline hover:text-primary">
-                  {f.q}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-base">{f.a}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+          {[
+            { icon: "Star", value: "4.8 / 5", label: "Средняя оценка", color: "#f59e0b" },
+            { icon: "Users", value: "10 000+", label: "Активных пользователей", color: "#00d4ff" },
+            { icon: "Heart", value: "Бесплатно", label: "Навсегда", color: "#ec4899" },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="rounded-2xl border border-white/8 bg-[#0d1220]/60 p-6 flex flex-col items-center gap-3"
+            >
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center"
+                style={{ background: `${item.color}15`, border: `1px solid ${item.color}30` }}
+              >
+                <Icon name={item.icon as "Star"} size={22} style={{ color: item.color }} />
+              </div>
+              <div className="font-display text-2xl font-bold text-white">{item.value}</div>
+              <div className="font-body text-sm text-white/40">{item.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
